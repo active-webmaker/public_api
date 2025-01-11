@@ -4,6 +4,7 @@ import pymysql
 import time
 from dotenv import dotenv_values
 import json
+import sys
 
 
 def log_recode(log_txt, log_var, extra_var=None):
@@ -35,16 +36,20 @@ PW = config['PW']
 DBNAME = config['DBNAME']
 API_KEY = config['API_KEY']
 API_URL = config['API_URL']
-API_SECTION = config['API_SECTION']
+DATA_STORAGE = config['DATA_STORAGE']
+STNIDS = config['STNIDS']
+stnids_list = STNIDS.split(sep=',')
+fname = filename_maker(f'{DATA_STORAGE}/log_txt')
 log_txt = log_recode(log_txt, 'add dotenv_values')
 
 
 today_date = datetime.now()
-today_date_str = today_date.strftime("%Y%m%d")
+today_date_str = today_date.strftime("%Y-%m-%d")
 upload_date = today_date - timedelta(days=14)
-log_txt = log_recode(log_txt, f'today_date: {today_date}')
+upload_date_str = upload_date.strftime("%Y-%m-%d")
+log_txt = log_recode(log_txt, f'today_date: {today_date}, upload_date: {upload_date}')
 
-request_date = datetime.strptime('20240101', "%Y%m%d")
+request_date = datetime.strptime('2024-01-01', "%Y-%m-%d")
 log_txt = log_recode(log_txt, f'base_request_date: {request_date}')
 
 # MySQL 연결 설정
@@ -55,74 +60,94 @@ try:
     curs = conn.cursor()
 
     # SQL 쿼리 실행
-    sql = "SELECT * FROM cattle LIMIT 1 ORDER BY execute_date DESC"
+    sql = "SELECT * FROM temperature ORDER BY JSON_EXTRACT(json_data, '$.tm') DESC LIMIT 1"
     curs.execute(sql)
     row = curs.fetchone() # 하나의 결과만 가져오기
 
     if row != None:
-        request_date = row['OCCRRNC_DE']
+        json_data = row['json_data']
+        json_data = json.loads(json_data)
+        request_date = json_data['tm']
         log_txt = log_recode(log_txt, f'last_request_date: {request_date}')
-        request_date = datetime.strptime(str(request_date), "%Y%m%d") + timedelta(days=1)
+        request_date = datetime.strptime(str(request_date), "%Y-%m-%d") + timedelta(days=1)
         log_txt = log_recode(log_txt, f'update_request_date: {request_date}')
 
     else:
-        log_txt = log_recode(log_txt, f'MySQL {DBNAME} cattle empty')
-    
+        log_txt = log_recode(log_txt, f'MySQL {DBNAME} temperature empty')
 
-except Exception as e:
-    print(f"Error: {e}")
-
-finally:
-    # 연결 닫기 (필수)
     conn.close()
     
 
-TYPE = "json"
-max_count = 1000
-all_data = []
-item_num = 1000
-result_code = "INFO-000"
+except Exception as e:
+    conn.close()
 
-while request_date <= upload_date:
+    log_txt = log_recode(log_txt, f"Error: {e}")
+    with open(fname, 'w', encoding='utf-8') as f:
+        f.write(log_txt)
+
+    sys.exit()
+
+    
+
+TYPE = "json"
+max_count = 500
+all_data = []
+item_num = 500
+result_code = "00"
+
+for stnids in stnids_list:
+    if request_date > upload_date:
+        break
     totalCnt = 2000
-    page = 0
+    page = 1
     end_index = max_count
     wnum = 0
 
-    while totalCnt >= end_index:
+    while totalCnt > end_index:
         try:
-            if page >= 10 or wnum >= 10:
-                log_txt = log_recode(log_txt, f'page: {page}, wnum: {wnum}, page >= 10 or wnum >= 10, break')
+            if page * max_count > totalCnt or wnum * max_count > totalCnt:
+                log_txt = log_recode(
+                    log_txt,
+                    f'page: {page}, wnum: {wnum}, totalCnt: {totalCnt},'
+                    + 'page * max_count > totalCnt' 
+                    + 'or wnum * max_count > totalCnt, break'
+                )
                 break
 
             log_txt = log_recode(log_txt, f'request_date: {request_date}, page: {page}')
             
-            start_index = page * max_count + 1
-            end_index = (page + 1) * max_count
+            start_index = (page-1) * max_count + 1
+            end_index = page * max_count
             log_txt = log_recode(log_txt, f'start_index: {start_index}, end_index: {end_index}')
 
-            request_date_str = request_date.strftime("%Y%m%d")
+            request_date_str = request_date.strftime("%Y-%m-%d")
             log_txt = log_recode(log_txt, f'request_date: {request_date}, request_date_str: {request_date_str}')
             
-            api_url = f"{API_URL}/{API_KEY}/{TYPE}/{API_SECTION}/{start_index}/{end_index}"
             params = {
-                "OCCRRNC_DE": request_date_str
+                'numOfRows':max_count,
+                'pageNo':page,
+                'dataCd':'ASOS',
+                'dateCd':'DAY',
+                'dataType':'json',
+                'startDt':request_date_str,
+                'endDt':upload_date_str,
+                'stnIds':stnids
             }
-            response = requests.get(api_url, params=params, timeout=10)
+            response = requests.get(API_URL, params=params, timeout=10)
         
             if response.status_code == 200:
                 data = response.json()  # JSON 형식인 경우
-                result_code = data[API_SECTION]['result']['code']
-                row = data[API_SECTION]['row']
-                totalCnt = int(data[API_SECTION]['totalCnt'])
+                result_code = data['header']['resultCode'] 
+                row = data['body']['items']['item']
+                totalCnt = int(data['body']['totalCnt'])
                 log_txt = log_recode(log_txt, f'result_code: {result_code}, totalCnt: {totalCnt}')
                 
-                if result_code != "INFO-000":
-                    log_txt = log_recode(log_txt, 'Not INFO-000, break')
+                if result_code != "00":
+                    log_txt = log_recode(log_txt, 'Not code 00, break')
                     break
 
                 if totalCnt == 0:
-                    row = [{"LKNTS_NM":"no_data", "OCCRRNC_DE":request_date_str},]
+                    row = [{"stnNm":"no_data", "tm":request_date_str},]
                     log_txt = log_recode(log_txt, 'response_data: no_data')
                 else:
                     log_txt = log_recode(log_txt, 'response_data: exist')
@@ -143,10 +168,9 @@ while request_date <= upload_date:
         wnum += 1
         time.sleep(3)
 
-    if result_code != "INFO-000":
+    if result_code != "00":
         break
 
-    request_date = request_date + timedelta(days=1)
 
 
 # MySQL 연결 설정
@@ -157,7 +181,7 @@ try:
     curs = conn.cursor()
     log_txt = log_recode(log_txt, 'MySql Data Insert Start')
     sql = "\
-        INSERT INTO cattle (json_data, execute_date)\
+        INSERT INTO temperature (json_data, execute_date)\
         VALUES(%s, %s)\
     "
     fornum = 1
@@ -166,6 +190,7 @@ try:
         json_string = json.dumps(data, ensure_ascii=False)
         log_txt = log_recode(log_txt, f'{fornum}번째 데이터 기록', (json_string, today_date))
         curs.execute(sql, (json_string, today_date))
+        fornum += 1
     conn.commit()
 
 except Exception as e:
@@ -177,7 +202,6 @@ finally:
     conn.close()
 
 log_txt = log_recode(log_txt, 'PROGRAM END')
-fname = filename_maker('log_txt')
 with open(fname, 'w', encoding='utf-8') as f:
     f.write(log_txt)
 

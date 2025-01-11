@@ -4,6 +4,7 @@ import pymysql
 import time
 from dotenv import dotenv_values
 import json
+import sys
 
 
 def log_recode(log_txt, log_var, extra_var=None):
@@ -36,13 +37,15 @@ DBNAME = config['DBNAME']
 API_KEY = config['API_KEY']
 API_URL = config['API_URL']
 API_SECTION = config['API_SECTION']
+DATA_STORAGE = config['DATA_STORAGE']
+fname = filename_maker(f'{DATA_STORAGE}/log_txt')
 log_txt = log_recode(log_txt, 'add dotenv_values')
 
 
 today_date = datetime.now()
 today_date_str = today_date.strftime("%Y%m%d")
 upload_date = today_date - timedelta(days=14)
-log_txt = log_recode(log_txt, f'today_date: {today_date}')
+log_txt = log_recode(log_txt, f'today_date: {today_date}, upload_date: {upload_date}')
 
 request_date = datetime.strptime('20240101', "%Y%m%d")
 log_txt = log_recode(log_txt, f'base_request_date: {request_date}')
@@ -55,27 +58,34 @@ try:
     curs = conn.cursor()
 
     # SQL 쿼리 실행
-    sql = "SELECT * FROM cattle LIMIT 1 ORDER BY execute_date DESC"
+    sql = "SELECT * FROM cattle ORDER BY JSON_EXTRACT(json_data, '$.OCCRRNC_DE') DESC LIMIT 1"
     curs.execute(sql)
     row = curs.fetchone() # 하나의 결과만 가져오기
 
     if row != None:
-        request_date = row['OCCRRNC_DE']
+        json_data = row['json_data']
+        json_data = json.loads(json_data)
+        request_date = json_data['OCCRRNC_DE']
         log_txt = log_recode(log_txt, f'last_request_date: {request_date}')
         request_date = datetime.strptime(str(request_date), "%Y%m%d") + timedelta(days=1)
         log_txt = log_recode(log_txt, f'update_request_date: {request_date}')
 
     else:
         log_txt = log_recode(log_txt, f'MySQL {DBNAME} cattle empty')
+
+    conn.close()
     
 
 except Exception as e:
-    log_txt = log_recode(log_txt, f"Error: {e}")
-
-finally:
-    # 연결 닫기 (필수)
     conn.close()
-    
+
+    log_txt = log_recode(log_txt, f"Error: {e}")
+    with open(fname, 'w', encoding='utf-8') as f:
+        f.write(log_txt)
+
+    sys.exit()
+
+
 
 TYPE = "json"
 max_count = 1000
@@ -85,20 +95,24 @@ result_code = "INFO-000"
 
 while request_date <= upload_date:
     totalCnt = 2000
-    page = 0
+    page = 1
     end_index = max_count
-    wnum = 0
+    wnum = 1
 
-    while totalCnt >= end_index:
+    while totalCnt > end_index:
         try:
             if page >= 10 or wnum >= 10:
-                log_txt = log_recode(log_txt, f'page: {page}, wnum: {wnum}, page >= 10 or wnum >= 10, break')
+                log_txt = log_recode(
+                    log_txt, 
+                    f'page: {page}, wnum: {wnum},'
+                    + 'page >= 10 or wnum >= 10, break'
+                )
                 break
 
             log_txt = log_recode(log_txt, f'request_date: {request_date}, page: {page}')
             
-            start_index = page * max_count + 1
-            end_index = (page + 1) * max_count
+            start_index = (page-1) * max_count + 1
+            end_index = page * max_count
             log_txt = log_recode(log_txt, f'start_index: {start_index}, end_index: {end_index}')
 
             request_date_str = request_date.strftime("%Y%m%d")
@@ -129,7 +143,7 @@ while request_date <= upload_date:
                 
                 log_txt = log_recode(log_txt, f'data_length: {len(data)}')
                 all_data.extend(row)
-                log_txt = log_recode(log_txt, 'data extend', row)
+                log_txt = log_recode(log_txt, 'data extend\n', row)
 
             else:
                 log_txt = log_recode(log_txt, f"Error: {response.status_code}")
@@ -166,6 +180,7 @@ try:
         json_string = json.dumps(data, ensure_ascii=False)
         log_txt = log_recode(log_txt, f'{fornum}번째 데이터 기록', (json_string, today_date))
         curs.execute(sql, (json_string, today_date))
+        fornum += 1
     conn.commit()
 
 except Exception as e:
@@ -177,7 +192,6 @@ finally:
     conn.close()
 
 log_txt = log_recode(log_txt, 'PROGRAM END')
-fname = filename_maker('log_txt')
 with open(fname, 'w', encoding='utf-8') as f:
     f.write(log_txt)
 
