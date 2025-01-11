@@ -38,7 +38,7 @@ API_KEY = config['API_KEY']
 API_URL = config['API_URL']
 API_SECTION = config['API_SECTION']
 DATA_STORAGE = config['DATA_STORAGE']
-fname = filename_maker(f'{DATA_STORAGE}/log_txt')
+fname = filename_maker(f'{DATA_STORAGE}/cattle_log')
 log_txt = log_recode(log_txt, 'add dotenv_values')
 
 

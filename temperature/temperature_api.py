@@ -39,7 +39,7 @@ API_URL = config['API_URL']
 DATA_STORAGE = config['DATA_STORAGE']
 STNIDS = config['STNIDS']
 stnids_list = STNIDS.split(sep=',')
-fname = filename_maker(f'{DATA_STORAGE}/log_txt')
+fname = filename_maker(f'{DATA_STORAGE}/temperature_log')
 log_txt = log_recode(log_txt, 'add dotenv_values')
 
 
