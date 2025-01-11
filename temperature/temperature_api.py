@@ -124,11 +124,12 @@ for stnids in stnids_list:
             log_txt = log_recode(log_txt, f'request_date: {request_date}, request_date_str: {request_date_str}')
             
             params = {
+                'serviceKey':API_KEY,
                 'numOfRows':max_count,
                 'pageNo':page,
                 'dataCd':'ASOS',
                 'dateCd':'DAY',
-                'dataType':'json',
+                'dataType':'JSON',
                 'startDt':request_date_str,
                 'endDt':upload_date_str,
                 'stnIds':stnids
