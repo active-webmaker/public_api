@@ -150,12 +150,13 @@ for stnids in stnids_list:
             }
 
             response = requests.get(API_URL, params=params, timeout=10)
-            response_code = response.status_code
+            response_code = int(response.status_code)
             log_txt = log_recode(log_txt, f'response_code: {response_code}')
 
             if  response_code == 200:
+                print('if 진입')
                 data = response.json()  # JSON 형식인 경우
-                log_txt = log_recode(log_txt, f'data: {data}')
+                log_txt = log_recode(log_txt, 'data', str(data))
                 result_code = data['response']['header']['resultCode']
                 log_txt = log_recode(log_txt, f'result_code: {result_code}')
                 resultMsg = data['response']['header']['resultMsg']
@@ -179,6 +180,7 @@ for stnids in stnids_list:
                 log_txt = log_recode(log_txt, 'data extend', row)
 
             else:
+                print('else 진입 error 발생')
                 raise Exception(f'response_code: {response_code}, response_code != 200')
         
         except Exception as e:
