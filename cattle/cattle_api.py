@@ -138,8 +138,7 @@ while request_date <= upload_date:
                 log_txt = log_recode(log_txt, f'result_code: {result_code}, totalCnt: {totalCnt}')
                 
                 if result_code != "INFO-000":
-                    log_txt = log_recode(log_txt, 'result_code: {result_code}, result_message: {result_message}')
-                    raise Exception(f"INFO-000, break")
+                    raise Exception(f'result_code: {result_code}, result_message: {result_message}, INFO-000, break')
 
                 if totalCnt == 0:
                     row = [{"LKNTS_NM":"no_data", "OCCRRNC_DE":request_date_str},]
@@ -152,8 +151,7 @@ while request_date <= upload_date:
                 log_txt = log_recode(log_txt, 'data extend\n', row)
 
             else:
-                log_txt = log_recode(log_txt, f'response: {response.status_code}, response.status_code != 200')
-                raise Exception(f"response.status_code != 200")
+                raise Exception(f'response_code: {response_code}, response_code != 200')
         
         except Exception as e:
             log_txt = log_recode(log_txt, f"Error: {e}")

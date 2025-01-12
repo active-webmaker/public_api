@@ -155,15 +155,18 @@ for stnids in stnids_list:
 
             if  response_code == 200:
                 data = response.json()  # JSON 형식인 경우
-                result_code = data['response']['header']['resultCode'] 
-                resultMsg = data['response']['header']['resultMsg'] 
+                log_txt = log_recode(log_txt, f'data: {data}')
+                result_code = data['response']['header']['resultCode']
+                log_txt = log_recode(log_txt, f'result_code: {result_code}')
+                resultMsg = data['response']['header']['resultMsg']
+                log_txt = log_recode(log_txt, f'resultMsg: {resultMsg}')
                 row = data['response']['body']['items']['item']
+                log_txt = log_recode(log_txt, 'row_item', str(row))
                 totalCnt = int(data['response']['body']['totalCnt'])
                 log_txt = log_recode(log_txt, f'result_code: {result_code}, totalCnt: {totalCnt}')
                 
                 if result_code != "00":
-                    log_txt = log_recode(log_txt, 'result_code: {result_code}, resultMsg: {resultMsg}')
-                    raise Exception(f"Not code 00, break")
+                    raise Exception(f'result_code: {result_code}, resultMsg: {resultMsg}, Not code 00, break')
 
                 if totalCnt == 0:
                     row = [{"stnNm":"no_data", "tm":request_date_str},]
@@ -176,8 +179,7 @@ for stnids in stnids_list:
                 log_txt = log_recode(log_txt, 'data extend', row)
 
             else:
-                log_txt = log_recode(log_txt, f'response_code: {response_code}, response_code != 200')
-                raise Exception("response.status_code != 200")
+                raise Exception(f'response_code: {response_code}, response_code != 200')
         
         except Exception as e:
             log_txt = log_recode(log_txt, f"Error: {e}")
