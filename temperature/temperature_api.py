@@ -159,7 +159,7 @@ for stnids in stnids_list:
                 result_code = data['response']['header']['resultCode']
                 resultMsg = data['response']['header']['resultMsg']
                 row = data['response']['body']['items']['item']
-                totalCnt = int(data['response']['body']['totalCnt'])
+                totalCnt = int(data['response']['body']['totalCount'])
                 log_txt = log_recode(log_txt, f'result_code: {result_code}, totalCnt: {totalCnt}')
                 
                 if result_code != "00":
