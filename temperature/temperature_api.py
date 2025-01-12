@@ -41,19 +41,28 @@ STNIDS = config['STNIDS']
 stnids_list = STNIDS.split(sep=',')
 fname = filename_maker(f'{DATA_STORAGE}/temperature_log')
 log_txt = log_recode(log_txt, 'add dotenv_values')
+log_txt = log_recode(log_txt, f'stnids_list: {stnids_list}')
 
 
 today_date = datetime.now()
 today_date_str = today_date.strftime("%Y-%m-%d")
 upload_date = today_date - timedelta(days=14)
 upload_date_str = upload_date.strftime("%Y-%m-%d")
-log_txt = log_recode(log_txt, f'today_date: {today_date}, upload_date: {upload_date}')
+log_txt = log_recode(
+    log_txt, 
+    f'today_date: {today_date}, '
+    + f'upload_date: {upload_date}, '
+    + f'upload_date_str: {upload_date_str}'
+)
 
 request_date = datetime.strptime('2024-01-01', "%Y-%m-%d")
 log_txt = log_recode(log_txt, f'base_request_date: {request_date}')
 
 # MySQL 연결 설정
-conn = pymysql.connect(host='localhost', user=USERID, password=PW, db=DBNAME, charset='utf8', cursorclass=pymysql.cursors.DictCursor)
+conn = pymysql.connect(
+    host='localhost', user=USERID, password=PW, 
+    db=DBNAME, charset='utf8', cursorclass=pymysql.cursors.DictCursor
+)
 
 try:
     # 커서 생성
@@ -144,8 +153,7 @@ for stnids in stnids_list:
                 log_txt = log_recode(log_txt, f'result_code: {result_code}, totalCnt: {totalCnt}')
                 
                 if result_code != "00":
-                    log_txt = log_recode(log_txt, 'Not code 00, break')
-                    break
+                    raise Exception(f"result_code: {result_code}, Not code 00, break")
 
                 if totalCnt == 0:
                     row = [{"stnNm":"no_data", "tm":request_date_str},]
@@ -158,8 +166,7 @@ for stnids in stnids_list:
                 log_txt = log_recode(log_txt, 'data extend', row)
 
             else:
-                log_txt = log_recode(log_txt, f"Error: {response.status_code}")
-                break  # 오류 발생 시 중단
+                raise Exception(f"response.status_code: {response.status_code}, response.status_code != 200")
         
         except Exception as e:
             log_txt = log_recode(log_txt, f"Error: {e}")
@@ -175,7 +182,10 @@ for stnids in stnids_list:
 
 
 # MySQL 연결 설정
-conn = pymysql.connect(host='localhost', user=USERID, password=PW, db=DBNAME, charset='utf8', cursorclass=pymysql.cursors.DictCursor)
+conn = pymysql.connect(
+    host='localhost', user=USERID, password=PW, 
+    db=DBNAME, charset='utf8', cursorclass=pymysql.cursors.DictCursor
+)
 
 try:
     # 커서 생성
