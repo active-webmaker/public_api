@@ -111,6 +111,8 @@ for stnids in stnids_list:
     page = 1
     end_index = max_count
     wnum = 0
+    result_code = ""
+    response_code = 0
 
     while totalCnt > end_index:
         try:
@@ -123,14 +125,17 @@ for stnids in stnids_list:
                 )
                 break
 
-            log_txt = log_recode(log_txt, f'request_date: {request_date}, page: {page}')
-            
             start_index = (page-1) * max_count + 1
             end_index = page * max_count
             log_txt = log_recode(log_txt, f'start_index: {start_index}, end_index: {end_index}')
 
             request_date_str = request_date.strftime("%Y%m%d")
-            log_txt = log_recode(log_txt, f'request_date: {request_date}, request_date_str: {request_date_str}')
+            log_txt = log_recode(
+                log_txt, 
+                f'max_count: {max_count}, page: {page}, '
+                + f'request_date_str: {request_date_str}, '
+                + f'upload_date_str: {upload_date_str}, stnids: {stnids}'
+            )
             
             params = {
                 'serviceKey':API_KEY,
@@ -143,9 +148,10 @@ for stnids in stnids_list:
                 'endDt':upload_date_str,
                 'stnIds':stnids
             }
+
             response = requests.get(API_URL, params=params, timeout=10)
-        
-            if response.status_code == 200:
+            response_code = response.status_code
+            if  response_code == 200:
                 data = response.json()  # JSON 형식인 경우
                 result_code = data['header']['resultCode'] 
                 resultMsg = data['header']['resultMsg'] 
@@ -168,7 +174,7 @@ for stnids in stnids_list:
                 log_txt = log_recode(log_txt, 'data extend', row)
 
             else:
-                log_txt = log_recode(log_txt, f'response: {response.status_code}, response.status_code != 200')
+                log_txt = log_recode(log_txt, f'response_code: {response_code}, response_code != 200')
                 raise Exception("response.status_code != 200")
         
         except Exception as e:
@@ -179,7 +185,7 @@ for stnids in stnids_list:
         wnum += 1
         time.sleep(3)
 
-    if result_code != "00":
+    if result_code != "00" or response_code != 200:
         break
 
 

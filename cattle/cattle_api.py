@@ -98,6 +98,8 @@ while request_date <= upload_date:
     page = 1
     end_index = max_count
     wnum = 1
+    result_code = ""
+    response_code = 0
 
     while totalCnt > end_index:
         try:
@@ -122,9 +124,10 @@ while request_date <= upload_date:
             params = {
                 "OCCRRNC_DE": request_date_str
             }
+
             response = requests.get(api_url, params=params, timeout=10)
-        
-            if response.status_code == 200:
+            response_code = response.status_code
+            if response_code == 200:
                 data = response.json()  # JSON 형식인 경우
                 result_code = data[API_SECTION]['result']['code']
                 result_message = data[API_SECTION]['result']['message']
@@ -158,7 +161,7 @@ while request_date <= upload_date:
         wnum += 1
         time.sleep(3)
 
-    if result_code != "INFO-000":
+    if result_code != "INFO-000" or response_code != 200:
         break
 
     request_date = request_date + timedelta(days=1)
