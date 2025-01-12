@@ -45,9 +45,9 @@ log_txt = log_recode(log_txt, f'stnids_list: {stnids_list}')
 
 
 today_date = datetime.now()
-today_date_str = today_date.strftime("%Y-%m-%d")
+today_date_str = today_date.strftime("%Y%m%d")
 upload_date = today_date - timedelta(days=14)
-upload_date_str = upload_date.strftime("%Y-%m-%d")
+upload_date_str = upload_date.strftime("%Y%m%d")
 log_txt = log_recode(
     log_txt, 
     f'today_date: {today_date}, '
@@ -55,7 +55,7 @@ log_txt = log_recode(
     + f'upload_date_str: {upload_date_str}'
 )
 
-request_date = datetime.strptime('2024-01-01', "%Y-%m-%d")
+request_date = datetime.strptime('20240101', "%Y%m%d")
 log_txt = log_recode(log_txt, f'base_request_date: {request_date}')
 
 # MySQL 연결 설정
@@ -129,7 +129,7 @@ for stnids in stnids_list:
             end_index = page * max_count
             log_txt = log_recode(log_txt, f'start_index: {start_index}, end_index: {end_index}')
 
-            request_date_str = request_date.strftime("%Y-%m-%d")
+            request_date_str = request_date.strftime("%Y%m%d")
             log_txt = log_recode(log_txt, f'request_date: {request_date}, request_date_str: {request_date_str}')
             
             params = {
@@ -148,12 +148,14 @@ for stnids in stnids_list:
             if response.status_code == 200:
                 data = response.json()  # JSON 형식인 경우
                 result_code = data['header']['resultCode'] 
+                resultMsg = data['header']['resultMsg'] 
                 row = data['body']['items']['item']
                 totalCnt = int(data['body']['totalCnt'])
                 log_txt = log_recode(log_txt, f'result_code: {result_code}, totalCnt: {totalCnt}')
                 
                 if result_code != "00":
-                    raise Exception(f"result_code: {result_code}, Not code 00, break")
+                    log_txt = log_recode(log_txt, 'result_code: {result_code}, resultMsg: {resultMsg}')
+                    raise Exception(f"Not code 00, break")
 
                 if totalCnt == 0:
                     row = [{"stnNm":"no_data", "tm":request_date_str},]
@@ -166,7 +168,8 @@ for stnids in stnids_list:
                 log_txt = log_recode(log_txt, 'data extend', row)
 
             else:
-                raise Exception(f"response.status_code: {response.status_code}, response.status_code != 200")
+                log_txt = log_recode(log_txt, f'response: {response.status_code}, response.status_code != 200')
+                raise Exception("response.status_code != 200")
         
         except Exception as e:
             log_txt = log_recode(log_txt, f"Error: {e}")
