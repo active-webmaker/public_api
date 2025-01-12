@@ -151,7 +151,9 @@ for stnids in stnids_list:
 
             response = requests.get(API_URL, params=params, timeout=10)
             response_code = int(response.status_code)
+            response_text = response.text
             log_txt = log_recode(log_txt, f'response_code: {response_code}')
+            log_txt = log_recode(log_txt, f'response_text: {response_text}')
 
             if  response_code == 200:
                 print('if 진입')
