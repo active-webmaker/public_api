@@ -151,12 +151,14 @@ for stnids in stnids_list:
 
             response = requests.get(API_URL, params=params, timeout=10)
             response_code = response.status_code
+            log_txt = log_recode(log_txt, f'response_code: {response_code}')
+
             if  response_code == 200:
                 data = response.json()  # JSON 형식인 경우
-                result_code = data['header']['resultCode'] 
-                resultMsg = data['header']['resultMsg'] 
-                row = data['body']['items']['item']
-                totalCnt = int(data['body']['totalCnt'])
+                result_code = data['response']['header']['resultCode'] 
+                resultMsg = data['response']['header']['resultMsg'] 
+                row = data['response']['body']['items']['item']
+                totalCnt = int(data['response']['body']['totalCnt'])
                 log_txt = log_recode(log_txt, f'result_code: {result_code}, totalCnt: {totalCnt}')
                 
                 if result_code != "00":

@@ -127,6 +127,8 @@ while request_date <= upload_date:
 
             response = requests.get(api_url, params=params, timeout=10)
             response_code = response.status_code
+            log_txt = log_recode(log_txt, f'response_code: {response_code}')
+
             if response_code == 200:
                 data = response.json()  # JSON 형식인 경우
                 result_code = data[API_SECTION]['result']['code']
