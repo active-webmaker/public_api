@@ -153,18 +153,12 @@ for stnids in stnids_list:
             response_code = int(response.status_code)
             response_text = response.text
             log_txt = log_recode(log_txt, f'response_code: {response_code}')
-            log_txt = log_recode(log_txt, f'response_text: {response_text}')
 
             if  response_code == 200:
-                print('if 진입')
                 data = response.json()  # JSON 형식인 경우
-                log_txt = log_recode(log_txt, 'data', str(data))
                 result_code = data['response']['header']['resultCode']
-                log_txt = log_recode(log_txt, f'result_code: {result_code}')
                 resultMsg = data['response']['header']['resultMsg']
-                log_txt = log_recode(log_txt, f'resultMsg: {resultMsg}')
                 row = data['response']['body']['items']['item']
-                log_txt = log_recode(log_txt, 'row_item', str(row))
                 totalCnt = int(data['response']['body']['totalCnt'])
                 log_txt = log_recode(log_txt, f'result_code: {result_code}, totalCnt: {totalCnt}')
                 
@@ -182,7 +176,6 @@ for stnids in stnids_list:
                 log_txt = log_recode(log_txt, 'data extend', row)
 
             else:
-                print('else 진입 error 발생')
                 raise Exception(f'response_code: {response_code}, response_code != 200')
         
         except Exception as e:
