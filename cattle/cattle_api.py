@@ -165,6 +165,7 @@ while request_date <= upload_date:
         break
 
     request_date = request_date + timedelta(days=1)
+    time.sleep(3)
 
 
 # MySQL 연결 설정

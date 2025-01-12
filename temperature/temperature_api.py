@@ -173,7 +173,7 @@ for stnids in stnids_list:
                 
                 log_txt = log_recode(log_txt, f'data_length: {len(data)}')
                 all_data.extend(row)
-                log_txt = log_recode(log_txt, 'data extend', row)
+                log_txt = log_recode(log_txt, 'data extend\n', row)
 
             else:
                 raise Exception(f'response_code: {response_code}, response_code != 200')
@@ -185,9 +185,11 @@ for stnids in stnids_list:
         page += 1
         wnum += 1
         time.sleep(3)
-
+    
     if result_code != "00" or response_code != 200:
         break
+
+    time.sleep(3)
 
 
 
