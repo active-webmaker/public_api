@@ -139,14 +139,14 @@ for stnids in stnids_list:
             
             params = {
                 'serviceKey':API_KEY,
-                'numOfRows':max_count,
-                'pageNo':page,
+                'numOfRows':int(max_count),
+                'pageNo':int(page),
                 'dataCd':'ASOS',
                 'dateCd':'DAY',
                 'dataType':'JSON',
-                'startDt':request_date_str,
-                'endDt':upload_date_str,
-                'stnIds':stnids
+                'startDt':int(request_date_str),
+                'endDt':int(upload_date_str),
+                'stnIds':int(stnids)
             }
 
             response = requests.get(API_URL, params=params, timeout=10)
