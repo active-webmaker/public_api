@@ -107,6 +107,7 @@ result_code = "00"
 for stnids in stnids_list:
     if request_date > upload_date:
         break
+    log_txt = log_recode(log_txt, f'stnids: {stnids}')
     totalCnt = 2000
     page = 1
     end_index = max_count

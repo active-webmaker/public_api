@@ -3,6 +3,7 @@ import pymysql
 from dotenv import dotenv_values
 import json
 from flask import Flask, request
+import pandas as pd
 
 
 def log_recode(log_txt, log_var, extra_var=None):
@@ -27,10 +28,15 @@ def filename_maker(filename='output', file_form='txt'):
 
 
 def mysql_connect(table, start_date=None, end_date=None):
+    start_date = start_date.strftime('%Y-%m-%d %H:%M:%S')
+    end_date = end_date.strftime('%Y-%m-%d %H:%M:%S')
     config = dotenv_values('.env')
     USERID = config['USERID']
     PW = config['PW']
     DBNAME = config['DBNAME']
+    TABLE_LIST = config['TABLE_LIST']
+    tables = TABLE_LIST.split(',')
+
     log_txt = log_recode('', 'add dotenv_values')
 
     # MySQL 연결 설정
@@ -45,19 +51,26 @@ def mysql_connect(table, start_date=None, end_date=None):
         # 커서 생성
         curs = conn.cursor()
         vars = []
-        # SQL 쿼리 실행
-        sql = "SELECT * FROM %s"
-        vars.append(table)
+
+        # 쿼리 생성
+        sql = "SELECT * FROM "      
+        if table in tables:
+            sql += table
+        else:
+            raise Exception("Wrong table name")
+        
         if start_date:
             sql += " WHERE execute_date > %s"
             vars.append(start_date)
             if end_date:
-                sql += "AND execute_date < %s"
+                sql += " AND execute_date < %s"
                 vars.append(end_date)
         sql += " ORDER BY id DESC, execute_date DESC"
+        print(f'sql: {sql}, vars: {vars}')
 
+        # SQL 쿼리 실행
         curs.execute(sql, vars)
-        row = curs.fetchall() # 하나의 결과만 가져오기
+        row = curs.fetchall()
 
     except Exception as e:
         log_txt = log_recode(log_txt, f"Error: {e}")
@@ -88,8 +101,8 @@ def home():
         start_date = request.args.get('start_date')
         end_date = request.args.get('end_date')
         table = request.args.get('table')
-        start_datetime = datetime.strptime(start_date, "%Y%m%d")
-        end_datetime = datetime.strptime(end_date, "%Y%m%d")
+        start_datetime = datetime.strptime(start_date, "%Y%m%d%H%M%S")
+        end_datetime = datetime.strptime(end_date, "%Y%m%d%H%M%S")
 
         if api_key != API_KEY:
             raise Exception("Wrong api_key")
@@ -98,18 +111,20 @@ def home():
         elif not table in tables:
             raise Exception("Wrong table name")
         else:
-            (row, add_log) = mysql_connect(table, start_date, end_date)
+            (row, add_log) = mysql_connect(table, start_datetime, end_datetime)
             log_txt += add_log
-            result = (json.dumps(row, ensure_ascii=False), 200)
+            df = pd.DataFrame(row)
+            json_data = df.to_json(orient='records', date_format='iso')
+            result = (json_data, 200)
         
     except Exception as e:
         log_txt = log_recode(log_txt, f"error: {e}")
         error_msg = {"error": "Internal Server Error", "code": 500}
         result = (json.dumps(error_msg, ensure_ascii=False), 500)
     
-    with open(fname, 'w', encoding='utf-8') as f:
-        f.write(log_txt)
-    
+        with open(fname, 'w', encoding='utf-8') as f:
+            f.write(log_txt)
+        
     return result
 
 

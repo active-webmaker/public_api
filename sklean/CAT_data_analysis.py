@@ -5,6 +5,7 @@ import glob
 
 
 """
+
 # 데이터 불러오기
 df = pd.read_parquet('data.parquet')
 
@@ -62,6 +63,7 @@ y_pred = model.predict(X_test)
 print("Accuracy:", accuracy_score(y_test, y_pred))
 print("Confusion Matrix:\n", confusion_matrix(y_test, y_pred))
 print("Classification Report:\n", classification_report(y_test, y_pred))
+ROC-AUC 또는 PR-AUC
 
 # 7. 특성 중요도 출력 (로지스틱 회귀의 계수)
 print("Coefficients:\n", model.coef_)
@@ -84,4 +86,62 @@ sns.regplot(x='A', y='B', data=df)는 변수 A와 B 간의 산점도와 함께 �
 다른 변수 쌍에 대해 sns.regplot()을 사용하여 선형성을 확인할 수 있습니다.
 잔차 분석을 수행하여 선형 모델의 적합성을 평가할 수 있습니다.
 변수 변환(로그 변환, 제곱근 변환 등)을 통해 선형성을 개선할 수 있습니다.
+"""
+
+
+"""
+import pandas as pd
+import numpy as np
+
+# 예제 데이터 생성
+data = {
+    'age': [25, 30, 28, np.nan, 22, 27, 35, 29, 24, 120],
+    'income': [50000, 60000, 55000, 70000, 48000, 52000, 65000, 58000, np.nan, 60000]
+}
+df = pd.DataFrame(data)
+
+# 1. 결측치 처리
+
+# (1) 결측치 확인
+print(df.isnull().sum())
+
+# (2) 결측치 제거
+df_dropped = df.dropna()  # 모든 결측치가 있는 행 제거
+print(df_dropped)
+
+# (3) 결측치 대체
+df_filled = df.fillna(df.mean())  # 평균값으로 대체
+print(df_filled)
+
+# 2. 이상치 처리
+
+# (1) 이상치 확인 (Boxplot 시각화)
+import matplotlib.pyplot as plt
+plt.boxplot(df['age'])
+plt.show()
+
+# (2) IQR을 이용한 이상치 제거
+Q1 = df['age'].quantile(0.25)
+Q3 = df['age'].quantile(0.75)
+IQR = Q3 - Q1
+lower_bound = Q1 - 1.5 * IQR
+upper_bound = Q3 + 1.5 * IQR
+
+df_no_outlier = df[(df['age'] >= lower_bound) & (df['age'] <= upper_bound)]
+print(df_no_outlier)
+
+# (3) 이상치 대체 (최대/최소값으로 대체)
+def replace_outlier(data, column):
+  Q1 = data[column].quantile(0.25)
+  Q3 = data[column].quantile(0.75)
+  IQR = Q3 - Q1
+  lower_bound = Q1 - 1.5 * IQR
+  upper_bound = Q3 + 1.5 * IQR
+
+  data.loc[data[column] < lower_bound, column] = lower_bound
+  data.loc[data[column] > upper_bound, column] = upper_bound
+  return data
+
+df_replaced = replace_outlier(df.copy(), 'age')
+print(df_replaced)
 """

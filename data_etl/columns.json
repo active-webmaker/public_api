@@ -1,0 +1,50 @@
+{
+	"cattle":{
+		"cols":[
+			"FARM_NM","ROW_NUM","LKNTS_NM","OCCRRNC_DE","FARM_LOCPLC","CESSATION_DE","LVSTCKSPC_NM",
+			"DGNSS_ENGN_NM","LVSTCKSPC_CODE","DGNSS_ENGN_CODE","ICTSD_OCCRRNC_NO","OCCRRNC_LVSTCKCNT",
+			"FARM_LOCPLC_LEGALDONG_CODE"
+		], 
+		"date_col":["OCCRRNC_DE","%Y%m%d"],
+		"essential_col":"stnNm",
+		"essential_data":[
+			"속초", "북춘천", "철원", "동두천", "파주", "대관령", "춘천", "백령도", "북강릉", "강릉", "동해", 
+			"서울", "인천", "원주", "울릉도", "수원", "영월", "충주", "서산", "울진", "청주", "대전", "추풍령", 
+			"안동", "상주", "포항", "군산", "대구", "전주", "울산", "창원", "광주", "부산", "통영", "목포", 
+			"여수", "흑산도", "완도", "고창", "순천", "홍성", "제주", "고산", "성산", "서귀포", "진주", "강화", 
+			"양평", "이천", "인제", "홍천", "태백", "정선군", "제천", "보은", "천안", "보령", "부여", "금산", 
+			"세종", "부안", "임실", "정읍", "남원", "장수", "고창군", "영광군", "김해시", "순창군", "북창원", 
+			"양산시", "보성군", "강진군", "장흥", "해남", "고흥", "의령군", "함양군", "광양시", "진도군", "봉화", 
+			"영주", "문경", "청송군", "영덕", "의성", "구미", "영천", "경주시", "거창", "합천", "밀양", "산청", 
+			"거제", "남해"
+		],
+		"reference_col":"FARM_LOCPLC"
+	},
+	"temperature":{
+		"cols":[
+			"numOfRows","pageNo","totalCount","resultCode",
+			"resultMsg","dataType","stnId","stnNm","tm ","avgTa","minTa","minTaHrmt","maxTa","maxTaHrmt",
+			"sumRnDur","mi10MaxRn","mi10MaxRnHrmt","hr1MaxRn","hr1MaxRnHrmt","sumRn","maxInsWs",
+			"maxInsWsWd","maxInsWsHrmt","maxWs","maxWsWd","maxWsHrmt","avgWs","hr24SumRws","maxWd",
+			"avgTd","minRhm","minRhmHrmt","avgRhm","avgPv","avgPa","maxPs","maxPsHrmt","minPs",
+			"minPsHrmt","avgPs","ssDur","sumSsHr","hr1MaxIcsrHrmt","hr1MaxIcsr","sumGsr","ddMefs",
+			"ddMefsHrmt","ddMes","ddMesHrmt","sumDpthFhsc","avgTca","avgLmac","avgTs","minTg","avgCm5Te",
+			"avgCm10Te","avgCm20Te","avgCm30Te","avgM05Te","avgM10Te","avgM15Te","avgM30Te","avgM50Te",
+			"sumLrgEv","sumSmlEv","n99Rn","iscs","sumFogDur"
+		],
+		"date_col":["tm","%Y-%m-%d"],
+		"essential_col":"stnNm",
+		"essential_data":[
+			"속초", "북춘천", "철원", "동두천", "파주", "대관령", "춘천", "백령도", "북강릉", "강릉", "동해", 
+			"서울", "인천", "원주", "울릉도", "수원", "영월", "충주", "서산", "울진", "청주", "대전", "추풍령", 
+			"안동", "상주", "포항", "군산", "대구", "전주", "울산", "창원", "광주", "부산", "통영", "목포", 
+			"여수", "흑산도", "완도", "고창", "순천", "홍성", "제주", "고산", "성산", "서귀포", "진주", "강화", 
+			"양평", "이천", "인제", "홍천", "태백", "정선군", "제천", "보은", "천안", "보령", "부여", "금산", 
+			"세종", "부안", "임실", "정읍", "남원", "장수", "고창군", "영광군", "김해시", "순창군", "북창원", 
+			"양산시", "보성군", "강진군", "장흥", "해남", "고흥", "의령군", "함양군", "광양시", "진도군", "봉화", 
+			"영주", "문경", "청송군", "영덕", "의성", "구미", "영천", "경주시", "거창", "합천", "밀양", "산청", 
+			"거제", "남해"
+		],
+		"reference_col":"stnNm"
+	}
+}
