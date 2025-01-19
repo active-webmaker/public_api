@@ -1,4 +1,3 @@
-
 # PySpark 관련 라이브러리
 from pyspark.sql import SparkSession
 from pyspark.sql.functions import col, when, explode, sequence, lit, expr
