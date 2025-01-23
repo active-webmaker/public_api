@@ -126,4 +126,4 @@ for yc in y_cols_droped:
         f.write(model_report)
 
     # 모델 저장
-    joblib.dump(model, f'{yc}_XGBoost_moder.pkl')
+    joblib.dump(model, f'{yc}_XGBoost_model.pkl')
